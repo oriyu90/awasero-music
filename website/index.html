@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>合わせろMusic (Awasero Music) — 鼻歌から楽譜・MIDIへ | 折田悠希 / おりたゆうき</title>
+<meta name="description" content="合わせろMusic（Awasero Music）は、鼻歌を録音して音同士の関係を保ちながら調とピッチのずれを推定し、編集可能な楽譜・MIDIへ変換するmacOSアプリです。開発者: 折田悠希（おりたゆうき）。GitHubで開発中。">
+<meta name="keywords" content="Awasero Music, 合わせろMusic, 折田悠希, おりたゆうき, github, 鼻歌, 作曲, MIDI, 楽譜, macOS">
+<meta property="og:title" content="合わせろMusic (Awasero Music)">
+<meta property="og:description" content="鼻歌を録音し、調とピッチのずれを推定して楽譜・MIDIへ変換するmacOS作曲支援アプリ。">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#1c1230">
+<style>
+  :root {
+    --bg: #f7f5fb;
+    --bg-alt: #ffffff;
+    --text: #1c1230;
+    --text-secondary: #5b5470;
+    --accent: #7c5cff;
+    --accent-strong: #5b3df0;
+    --border: #e4e0f2;
+    --card-shadow: 0 12px 30px rgba(28, 18, 48, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #100b1c;
+      --bg-alt: #1a1330;
+      --text: #f1eefb;
+      --text-secondary: #b3aad0;
+      --accent: #9c85ff;
+      --accent-strong: #b9a4ff;
+      --border: #2c2348;
+      --card-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+  a { color: var(--accent-strong); }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 6vw;
+    position: sticky;
+    top: 0;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+  }
+  .brand { font-weight: 700; font-size: 1.1rem; }
+  nav.langs { display: flex; gap: 6px; }
+  nav.langs button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  nav.langs button.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  main { max-width: 920px; margin: 0 auto; padding: 0 6vw 80px; }
+  .hero { text-align: center; padding: 72px 0 40px; }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 0 0 12px; }
+  .hero p.tagline { font-size: 1.15rem; color: var(--text-secondary); max-width: 620px; margin: 0 auto; }
+  .cta-row { display: flex; gap: 12px; justify-content: center; margin-top: 32px; flex-wrap: wrap; }
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+  }
+  .button.primary { background: var(--accent); color: white; }
+  .button.secondary { background: var(--bg-alt); color: var(--text); border-color: var(--border); }
+  section { margin-top: 64px; }
+  section h2 { font-size: 1.6rem; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+  }
+  .card h3 { margin: 0 0 8px; font-size: 1.05rem; }
+  .card p { margin: 0; color: var(--text-secondary); font-size: 0.95rem; }
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--text-secondary); }
+  .flow span.step {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 6vw;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+  footer .links { display: flex; gap: 18px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+  [data-i18n] { display: none; }
+  [data-i18n].active { display: block; }
+  span[data-i18n].active { display: inline; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">合わせろMusic <span style="color:var(--text-secondary)">/ Awasero Music</span></div>
+  <nav class="langs" id="lang-switch">
+    <button data-lang="ja">日本語</button>
+    <button data-lang="en">English</button>
+    <button data-lang="zh">中文</button>
+    <button data-lang="pt">Português</button>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>合わせろMusic <span style="color:var(--text-secondary); font-size:0.55em;">Awasero Music</span></h1>
+    <div data-i18n="ja" class="active"><p class="tagline">鼻歌を録音するだけで、音同士の関係を保ちながら調とピッチのずれを推定し、編集可能な楽譜・MIDIへ変換するmacOS作曲支援アプリです。</p></div>
+    <div data-i18n="en"><p class="tagline">Record a hummed melody and Awasero Music estimates the key and overall pitch offset — preserving the relationships between notes — then turns it into an editable score and MIDI, on macOS.</p></div>
+    <div data-i18n="zh"><p class="tagline">只需哼唱旋律，Awasero Music 就能在保留音符相对关系的同时推断调性与整体音高偏移，并转换为可编辑的乐谱与 MIDI（macOS 应用）。</p></div>
+    <div data-i18n="pt"><p class="tagline">Grave uma melodia cantarolada e o Awasero Music estima a tonalidade e o desvio geral de afinação — preservando a relação entre as notas — convertendo tudo em partitura editável e MIDI, no macOS.</p></div>
+
+    <div class="cta-row">
+      <a class="button secondary" href="https://discord.gg/x7KXhNTD8M" target="_blank" rel="noopener">
+        <span data-i18n="ja" class="active">Discordで最新情報・配布を確認</span>
+        <span data-i18n="en">Join Discord for updates &amp; downloads</span>
+        <span data-i18n="zh">加入 Discord 获取最新消息与下载</span>
+        <span data-i18n="pt">Entre no Discord para novidades e downloads</span>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <div data-i18n="ja" class="active"><h2>できること</h2></div>
+    <div data-i18n="en"><h2>What it does</h2></div>
+    <div data-i18n="zh"><h2>功能</h2></div>
+    <div data-i18n="pt"><h2>Recursos</h2></div>
+
+    <div class="grid">
+      <div class="card">
+        <div data-i18n="ja" class="active"><h3>鼻歌録音とメトロノーム</h3><p>入力機器の選択、無音・クリッピング警告、カウントイン付きメトロノームで録音を補助します。</p></div>
+        <div data-i18n="en"><h3>Recording &amp; metronome</h3><p>Choose your input device, get silence/clipping warnings, and record with a count-in metronome.</p></div>
+        <div data-i18n="zh"><h3>录音与节拍器</h3><p>选择输入设备，获得静音/削波提醒，并使用带预备拍的节拍器进行录音。</p></div>
+        <div data-i18n="pt"><h3>Gravação e metrônomo</h3><p>Escolha o dispositivo de entrada, receba avisos de silêncio/clipping e grave com contagem regressiva.</p></div>
+      </div>
+      <div class="card">
+        <div data-i18n="ja" class="active"><h3>調・ピッチのずれ推定</h3><p>一音ずつ半音へ丸めるのではなく、候補ごとに最適な全体ピッチオフセットを探索し、旋律の関係を保ちます。</p></div>
+        <div data-i18n="en"><h3>Key &amp; pitch drift estimation</h3><p>Instead of snapping each note independently, it searches the best overall pitch offset per key candidate — preserving melodic relationships.</p></div>
+        <div data-i18n="zh"><h3>调性与音高偏移推断</h3><p>不会逐个音符独立取整，而是为每个候选调性搜索最佳整体音高偏移，保留旋律的相对关系。</p></div>
+        <div data-i18n="pt"><h3>Estimativa de tonalidade e desvio de afinação</h3><p>Em vez de arredondar cada nota isoladamente, busca o melhor desvio geral de afinação por tonalidade candidata, preservando as relações da melodia.</p></div>
+      </div>
+      <div class="card">
+        <div data-i18n="ja" class="active"><h3>楽譜編集</h3><p>ピアノロール・五線譜、複数音符選択によるベロシティ一括編集、複数テンポポイント、Undo/Redoに対応。</p></div>
+        <div data-i18n="en"><h3>Score editing</h3><p>Piano roll &amp; staff view, multi-note velocity edits, multiple tempo points, and Undo/Redo.</p></div>
+        <div data-i18n="zh"><h3>乐谱编辑</h3><p>钢琴卷帘与五线谱视图、多音符力度批量编辑、多个速度节点、支持撤销/重做。</p></div>
+        <div data-i18n="pt"><h3>Edição de partitura</h3><p>Piano roll e partitura, edição de velocidade em múltiplas notas, vários pontos de tempo e Desfazer/Refazer.</p></div>
+      </div>
+      <div class="card">
+        <div data-i18n="ja" class="active"><h3>コード推定</h3><p>調とメロディから小節ごとのコード進行を推定し、手動修正も可能。伴奏音源そのものは生成しません。</p></div>
+        <div data-i18n="en"><h3>Chord estimation</h3><p>Estimates a chord per measure from the key and melody, editable by hand. It does not generate backing tracks.</p></div>
+        <div data-i18n="zh"><h3>和弦推断</h3><p>根据调性与旋律推断每小节的和弦，并可手动修改。不会生成伴奏音源本身。</p></div>
+        <div data-i18n="pt"><h3>Estimativa de acordes</h3><p>Estima um acorde por compasso a partir da tonalidade e da melodia, editável manualmente. Não gera faixas de acompanhamento.</p></div>
+      </div>
+      <div class="card">
+        <div data-i18n="ja" class="active"><h3>書き出し</h3><p>MIDI、MusicXML（調号・臨時記号・コード反映）、PDF楽譜、WAV音声を書き出せます。</p></div>
+        <div data-i18n="en"><h3>Export</h3><p>Export to MIDI, MusicXML (with key signature, accidentals, and chords), PDF score, and WAV audio.</p></div>
+        <div data-i18n="zh"><h3>导出</h3><p>可导出 MIDI、MusicXML（含调号、临时记号与和弦）、PDF 乐谱与 WAV 音频。</p></div>
+        <div data-i18n="pt"><h3>Exportação</h3><p>Exporte para MIDI, MusicXML (com armadura de clave, acidentes e acordes), partitura em PDF e áudio WAV.</p></div>
+      </div>
+      <div class="card">
+        <div data-i18n="ja" class="active"><h3>プロジェクト管理</h3><p>プロジェクト一覧、自動保存・クラッシュ復旧、元録音を保持したままの再解析に対応します。</p></div>
+        <div data-i18n="en"><h3>Project management</h3><p>A project list, autosave &amp; crash recovery, and re-analysis that never touches your original recording.</p></div>
+        <div data-i18n="zh"><h3>项目管理</h3><p>提供项目列表、自动保存与崩溃恢复，并支持在保留原始录音的前提下重新分析。</p></div>
+        <div data-i18n="pt"><h3>Gerenciamento de projetos</h3><p>Lista de projetos, salvamento automático, recuperação de falhas e reanálise que preserva a gravação original.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div data-i18n="ja" class="active"><h2>基本ワークフロー</h2></div>
+    <div data-i18n="en"><h2>Workflow</h2></div>
+    <div data-i18n="zh"><h2>基本流程</h2></div>
+    <div data-i18n="pt"><h2>Fluxo de trabalho</h2></div>
+
+    <div class="flow active" data-i18n="ja">
+      <span class="step">録音</span>→<span class="step">解析</span>→<span class="step">調・ピッチ補正</span>→<span class="step">楽譜編集</span>→<span class="step">コード確認</span>→<span class="step">書き出し</span>
+    </div>
+    <div class="flow" data-i18n="en">
+      <span class="step">Record</span>→<span class="step">Analyze</span>→<span class="step">Key &amp; pitch correction</span>→<span class="step">Edit score</span>→<span class="step">Review chords</span>→<span class="step">Export</span>
+    </div>
+    <div class="flow" data-i18n="zh">
+      <span class="step">录音</span>→<span class="step">分析</span>→<span class="step">调性与音高校正</span>→<span class="step">编辑乐谱</span>→<span class="step">确认和弦</span>→<span class="step">导出</span>
+    </div>
+    <div class="flow" data-i18n="pt">
+      <span class="step">Gravar</span>→<span class="step">Analisar</span>→<span class="step">Correção de tom e afinação</span>→<span class="step">Editar partitura</span>→<span class="step">Revisar acordes</span>→<span class="step">Exportar</span>
+    </div>
+  </section>
+
+  <section>
+    <div data-i18n="ja" class="active"><h2>開発について</h2><p>開発者: 折田悠希（おりたゆうき）。MITライセンスで公開予定。開発の様子は今後GitHubで公開します。バグ報告・ご要望はDiscordコミュニティまで。</p></div>
+    <div data-i18n="en"><h2>About the project</h2><p>Developed by Yuki Orita (折田悠希 / おりたゆうき). Released under the MIT License. Development will be shared on GitHub. Report bugs or share feedback in the Discord community.</p></div>
+    <div data-i18n="zh"><h2>关于本项目</h2><p>开发者：折田悠希（おりたゆうき）。以 MIT 许可证发布。开发进展将在 GitHub 上公开。欢迎在 Discord 社区反馈问题或建议。</p></div>
+    <div data-i18n="pt"><h2>Sobre o projeto</h2><p>Desenvolvido por Yuki Orita (折田悠希 / おりたゆうき). Distribuído sob a licença MIT. O desenvolvimento será compartilhado no GitHub. Relate bugs ou sugestões na comunidade do Discord.</p></div>
+  </section>
+</main>
+
+<footer>
+  <div class="links">
+    <a href="https://discord.gg/x7KXhNTD8M" target="_blank" rel="noopener">Discord</a>
+    <a href="https://x.com/InovateofRIZI" target="_blank" rel="noopener">X (Twitter)</a>
+    <a href="https://oriyu90.github.io/official/" target="_blank" rel="noopener">Yuki_Orita Official</a>
+  </div>
+  <div>&copy; 2026 Yuki_Orita (折田悠希 / おりたゆうき) — 合わせろMusic / Awasero Music</div>
+</footer>
+
+<script>
+  (function () {
+    var supported = ["ja", "en", "zh", "pt"];
+    function applyLang(lang) {
+      if (supported.indexOf(lang) === -1) lang = "ja";
+      document.querySelectorAll("[data-i18n]").forEach(function (el) {
+        el.classList.toggle("active", el.getAttribute("data-i18n") === lang);
+      });
+      document.querySelectorAll("#lang-switch button").forEach(function (btn) {
+        btn.classList.toggle("active", btn.getAttribute("data-lang") === lang);
+      });
+      document.documentElement.lang = lang;
+      try { localStorage.setItem("awasero-lang", lang); } catch (e) {}
+    }
+    document.querySelectorAll("#lang-switch button").forEach(function (btn) {
+      btn.addEventListener("click", function () { applyLang(btn.getAttribute("data-lang")); });
+    });
+    var saved;
+    try { saved = localStorage.getItem("awasero-lang"); } catch (e) {}
+    var initial = saved || (navigator.language || "ja").slice(0, 2);
+    applyLang(initial);
+  })();
+</script>
+</body>
+</html>
