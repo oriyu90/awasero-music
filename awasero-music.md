@@ -2,6 +2,13 @@
 
 開発補助AI向けの引き継ぎメモ。次回開発時に参照すること。表に出す機能一覧やユーザー向け説明は`README.md`・`実装計画書.md`を参照。
 
+## v1.1.0で対応したこと
+
+- **録音できない問題の修正**: `codesign --options runtime`（Hardened Runtime）に`com.apple.security.device.audio-input`のentitlements（`Resources/AwaseroMusic.entitlements`）が付いておらず、配布DMGでマイクアクセスがOSにブロックされ得た問題を修正。あわせて`recorder.lastError`（権限拒否・録音失敗）を今まで表示していなかったのをアラート表示に配線し、録音開始/停止を1つの大きなトグルボタンに統合してカウントイン中の状態も可視化。
+- **タップテンポ**: メトロノームのテンポスライダー下にTAP/リセットボタンを追加（`Metronome.tapTempo()`）。
+- **楽譜編集の強化**: 選択音符の半音単位の移調（⌘↑/⌘↓）、拍範囲を指定したテンポの微調整（範囲外は元のテンポを維持）、音符のクオンタイズ（グリッド・強さ・終了位置スナップ指定、選択音符または全音符に適用）を追加。
+- 上記の実装過程で見つけた副次的なバグ（カウントイン中キャンセル時のレース条件、範囲テンポ設定での重複イベント、TAPカウンター表示の頭打ち）も修正済み。
+
 ## v1.0.0で対応したこと
 
 - 精査で見つかった全項目（機能の確実性・安定性・UIの完全性）を修正・実装した。詳細は`実装計画書.md`の「実装済み機能」を参照。
@@ -20,6 +27,6 @@
 
 ## 配布・インフラ
 
-- GitHubリポジトリ: `oriyu90/awasero-music`（Private）
-- 紹介Webサイト: Cloudflare Pages（Git連携）、`website/`ディレクトリを配信。ダウンロード導線はDiscordへの誘導のみ（GitHub Releaseがprivateのため）。将来リポジトリ/リリースをPublicにする場合は`website/index.html`のダウンロードリンク1箇所を差し替える。
+- GitHubリポジトリ: `oriyu90/awasero-music`（Public、v1.0.0リリース時にPublic化済み）
+- 紹介Webサイト: Cloudflare Pages（Git連携）、`website/`ディレクトリを配信。ダウンロード導線は現状Discordへの誘導のみ。リポジトリがPublicになったため、GitHub Releaseへの直リンクに切り替える余地あり（`website/index.html`のダウンロードリンク1箇所、未実施・要判断）。
 - ライセンス: MIT、著作者 Yuki_Orita

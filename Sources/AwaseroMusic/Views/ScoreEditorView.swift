@@ -4,6 +4,7 @@ struct ScoreEditorView: View {
     @EnvironmentObject private var state: AppState
     @State private var presentation = 0
     @State private var showTempoEditor = false
+    @State private var showQuantizeEditor = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -37,6 +38,9 @@ struct ScoreEditorView: View {
                 Spacer()
                 Button("テンポ編集", systemImage: "metronome") { showTempoEditor = true }
                     .popover(isPresented: $showTempoEditor) { TempoEditorView() }
+                Button("クオンタイズ", systemImage: "grid") { showQuantizeEditor = true }
+                    .disabled(state.store.project.score.notes.isEmpty)
+                    .popover(isPresented: $showQuantizeEditor) { QuantizeEditorView() }
                 Button("再解析", systemImage: "arrow.clockwise") { state.reanalyze() }
                     .disabled(state.recordingURL == nil || state.isAnalyzing)
                 Button("音符を追加", systemImage: "plus") { state.addNote() }
@@ -78,6 +82,9 @@ private struct TempoEditorView: View {
     @EnvironmentObject private var state: AppState
     @State private var newBeat: Double = 0
     @State private var newBPM: Double = 120
+    @State private var rangeStart: Double = 0
+    @State private var rangeEnd: Double = 4
+    @State private var rangeBPM: Double = 120
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -101,9 +108,60 @@ private struct TempoEditorView: View {
                 TextField("BPM", value: $newBPM, format: .number).frame(width: 60)
                 Button("追加/更新") { state.addTempoEvent(beat: newBeat, bpm: newBPM) }
             }
+            Divider()
+            Text("区間を指定して微調整").font(.subheadline.bold())
+            Text("開始拍〜終了拍の範囲だけテンポを変更し、範囲外は元のテンポのまま残します。")
+                .font(.caption).foregroundStyle(.secondary)
+            HStack {
+                Text("開始"); TextField("拍", value: $rangeStart, format: .number).frame(width: 55)
+                Text("終了"); TextField("拍", value: $rangeEnd, format: .number).frame(width: 55)
+            }
+            HStack {
+                Slider(value: $rangeBPM, in: 20...300, step: 0.5)
+                Text("\(rangeBPM, format: .number.precision(.fractionLength(1))) BPM").monospacedDigit().frame(width: 80)
+            }
+            Button("範囲に適用") { state.setTempo(fromBeat: rangeStart, toBeat: rangeEnd, bpm: rangeBPM) }
+                .disabled(rangeEnd <= rangeStart)
         }
         .padding()
-        .frame(width: 280)
+        .frame(width: 300)
+    }
+}
+
+private struct QuantizeEditorView: View {
+    @EnvironmentObject private var state: AppState
+    @State private var grid: Double = 0.25
+    @State private var strength: Double = 1
+    @State private var snapEnd = false
+
+    private let gridOptions: [(label: String, beats: Double)] = [
+        ("1/4", 1), ("1/8", 0.5), ("1/16", 0.25),
+        ("1/8三連", 1.0 / 3.0), ("1/16三連", 1.0 / 6.0)
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("クオンタイズ").font(.headline)
+            Text(state.selectedNoteIDs.isEmpty ? "選択中の音符がないため、すべての音符に適用します。" : "選択した\(state.selectedNoteIDs.count)音に適用します。")
+                .font(.caption).foregroundStyle(.secondary)
+            Picker("グリッド", selection: $grid) {
+                ForEach(gridOptions, id: \.beats) { option in
+                    Text(option.label).tag(option.beats)
+                }
+            }
+            .pickerStyle(.segmented)
+            Toggle("長さの終了位置も揃える", isOn: $snapEnd)
+            VStack(alignment: .leading) {
+                Text("強さ  \(Int(strength * 100))%")
+                Slider(value: $strength, in: 0...1)
+            }
+            Button("適用") {
+                state.quantizeNotes(gridBeats: grid, strength: strength, snapEnd: snapEnd)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+        .frame(width: 260)
     }
 }
 
@@ -211,6 +269,23 @@ private struct NoteInspector: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("音符の編集").font(.title2.bold())
+            if !state.selectedNoteIDs.isEmpty {
+                HStack(spacing: 8) {
+                    Text("移調").font(.subheadline.bold())
+                    Spacer()
+                    Button("半音下げる", systemImage: "arrow.down") { state.transposeSelectedNotes(bySemitones: -1) }
+                        .labelStyle(.iconOnly)
+                        .keyboardShortcut(.downArrow, modifiers: .command)
+                        .help("選択した音符を半音下げる (⌘↓)")
+                        .accessibilityLabel("選択した音符を半音下げる")
+                    Button("半音上げる", systemImage: "arrow.up") { state.transposeSelectedNotes(bySemitones: 1) }
+                        .labelStyle(.iconOnly)
+                        .keyboardShortcut(.upArrow, modifiers: .command)
+                        .help("選択した音符を半音上げる (⌘↑)")
+                        .accessibilityLabel("選択した音符を半音上げる")
+                }
+                Divider()
+            }
             if state.selectedNoteIDs.count > 1 {
                 multiSelectionPanel
             } else if let index = selectedIndex {

@@ -41,6 +41,22 @@ struct RecordingView: View {
                                     .onChange(of: state.metronome.bpm) { _, _ in state.metronome.restartIfRunning() }
                                 Text("\(Int(state.metronome.bpm)) BPM").monospacedDigit().frame(width: 75)
                             }
+                            HStack(spacing: 8) {
+                                Button {
+                                    state.metronome.tapTempo()
+                                    state.metronome.restartIfRunning()
+                                } label: {
+                                    Label("TAP", systemImage: "hand.tap.fill").frame(width: 78)
+                                }
+                                .accessibilityHint("リズムに合わせて連続でクリックするとテンポを計測します")
+                                Button("リセット", systemImage: "arrow.counterclockwise") {
+                                    state.metronome.resetTapTempo()
+                                }
+                                .disabled(state.metronome.tapCount == 0)
+                                Text(state.metronome.tapCount > 0 ? "\(state.metronome.tapCount)回タップ" : "タップしてテンポ計測")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                         Picker("拍子", selection: $state.metronome.beatsPerBar) {
                             Text("3/4").tag(3); Text("4/4").tag(4); Text("6/8").tag(6)
@@ -67,16 +83,17 @@ struct RecordingView: View {
 
                 VStack(spacing: 22) {
                     ZStack {
-                        Circle().fill(state.recorder.isRecording ? Color.red.opacity(0.12) : Color.accentColor.opacity(0.08)).frame(width: 190, height: 190)
+                        Circle().fill(statusColor.opacity(0.12)).frame(width: 190, height: 190)
                         VStack(spacing: 10) {
-                            Image(systemName: state.recorder.isRecording ? "waveform" : "mic.fill")
-                                .font(.system(size: 46)).foregroundStyle(state.recorder.isRecording ? Color.red : Color.accentColor)
+                            Image(systemName: statusIcon)
+                                .font(.system(size: 46)).foregroundStyle(statusColor)
+                                .symbolEffect(.pulse, isActive: state.recorder.isRecording)
                             Text(formatTime(state.recorder.elapsed)).font(.system(size: 30, design: .rounded).monospacedDigit())
-                            Text(state.recorder.isRecording ? "録音中" : "録音待機").foregroundStyle(.secondary)
+                            Text(statusText).foregroundStyle(.secondary)
                         }
                     }
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel(state.recorder.isRecording ? "録音中、経過時間\(formatTime(state.recorder.elapsed))" : "録音待機")
+                    .accessibilityLabel(state.recorder.isRecording ? "録音中、経過時間\(formatTime(state.recorder.elapsed))" : statusText)
 
                     ProgressView(value: Double(state.recorder.inputLevel), total: 1)
                         .tint(state.recorder.inputLevel > 0.85 ? .red : .green)
@@ -94,15 +111,24 @@ struct RecordingView: View {
                     }
 
                     HStack(spacing: 12) {
-                        Button("録音開始", systemImage: "record.circle") { state.startRecording() }
-                            .buttonStyle(.borderedProminent).tint(.red)
-                            .disabled(state.recorder.isRecording || state.isAnalyzing)
-                        Button("停止", systemImage: "stop.fill") { state.stopRecording() }
-                            .disabled(!state.recorder.isRecording)
+                        Button {
+                            (state.recorder.isRecording || state.isPreparingToRecord) ? state.stopRecording() : state.startRecording()
+                        } label: {
+                            Label(recordButtonTitle, systemImage: recordButtonIcon)
+                                .font(.title3.bold())
+                                .frame(minWidth: 170)
+                                .padding(.vertical, 4)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(state.recorder.isRecording || state.isPreparingToRecord ? .red : .accentColor)
+                        .controlSize(.large)
+                        .disabled(state.isAnalyzing)
+                        .accessibilityHint("録音の開始と停止を切り替えます")
+
                         Button(state.recorder.isPlaying ? "再生停止" : "録音を聴く", systemImage: state.recorder.isPlaying ? "stop.fill" : "play.fill") {
                             state.recorder.isPlaying ? state.recorder.stopPlayback() : state.recorder.playRecording()
                         }
-                        .disabled(state.recordingURL == nil || state.recorder.isRecording)
+                        .disabled(state.recordingURL == nil || state.recorder.isRecording || state.isPreparingToRecord)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -133,5 +159,34 @@ struct RecordingView: View {
 
     private func formatTime(_ seconds: TimeInterval) -> String {
         String(format: "%02d:%02d.%01d", Int(seconds) / 60, Int(seconds) % 60, Int(seconds * 10) % 10)
+    }
+
+    private var statusColor: Color {
+        if state.recorder.isRecording { return .red }
+        if state.isPreparingToRecord { return .orange }
+        return .accentColor
+    }
+
+    private var statusIcon: String {
+        if state.recorder.isRecording { return "waveform" }
+        if state.isPreparingToRecord { return "timer" }
+        return "mic.fill"
+    }
+
+    private var statusText: String {
+        if state.recorder.isRecording { return "録音中" }
+        if state.isPreparingToRecord { return "カウントイン中…" }
+        return "録音待機"
+    }
+
+    private var recordButtonTitle: String {
+        if state.recorder.isRecording { return "停止" }
+        if state.isPreparingToRecord { return "キャンセル" }
+        return "録音開始"
+    }
+
+    private var recordButtonIcon: String {
+        if state.recorder.isRecording || state.isPreparingToRecord { return "stop.fill" }
+        return "record.circle"
     }
 }

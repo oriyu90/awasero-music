@@ -26,6 +26,7 @@ final class AppState: ObservableObject {
     @Published var selection: Section? = .projects
     @Published var analysisStage: AnalysisStage = .idle
     @Published var isAnalyzing = false
+    @Published private(set) var isPreparingToRecord = false
     @Published var selectedNoteID: UUID?
     @Published var selectedNoteIDs: Set<UUID> = []
     @Published var message: String?
@@ -59,6 +60,10 @@ final class AppState: ObservableObject {
         scorePlayer.objectWillChange
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &subscriptions)
+        recorder.$lastError
+            .compactMap { $0 }
+            .sink { [weak self] error in self?.message = error }
+            .store(in: &subscriptions)
 
         refreshProjectList()
         checkForRecovery()
@@ -82,18 +87,28 @@ final class AppState: ObservableObject {
 
     func startRecording() {
         scorePlayer.stop()
+        isPreparingToRecord = true
         metronome.start()
         Task {
             if countInBars > 0 {
                 let seconds = Double(countInBars * metronome.beatsPerBar) * 60 / metronome.bpm
                 try? await Task.sleep(for: .seconds(seconds))
             }
-            guard metronome.isRunning else { return }
+            guard metronome.isRunning else {
+                isPreparingToRecord = false
+                return
+            }
             await recorder.startRecording()
+            isPreparingToRecord = false
+            if !metronome.isRunning {
+                // User cancelled while the permission prompt / engine start-up was in flight.
+                recorder.stopRecording()
+            }
         }
     }
 
     func stopRecording() {
+        isPreparingToRecord = false
         recorder.stopRecording()
         metronome.stop()
     }
@@ -297,7 +312,72 @@ final class AppState: ObservableObject {
         hasManualEdits = true
     }
 
+    /// Shifts every selected note by `semitones` (positive = up), clamped to the valid MIDI range.
+    func transposeSelectedNotes(bySemitones semitones: Int) {
+        guard !selectedNoteIDs.isEmpty else { return }
+        store.pushUndoSnapshot()
+        for index in store.project.score.notes.indices where selectedNoteIDs.contains(store.project.score.notes[index].id) {
+            let shifted = store.project.score.notes[index].midiNote + semitones
+            store.project.score.notes[index].midiNote = max(0, min(127, shifted))
+        }
+        hasManualEdits = true
+    }
+
+    // MARK: - Quantize
+
+    /// Snaps note start times (and optionally end times) to the nearest multiple of `gridBeats`.
+    /// Applies to the current selection, or to every note when nothing is selected.
+    /// `strength` of 1.0 snaps fully; lower values move notes partway toward the grid.
+    func quantizeNotes(gridBeats: Double, strength: Double = 1, snapEnd: Bool = false) {
+        let targets = selectedNoteIDs.isEmpty ? Set(store.project.score.notes.map(\.id)) : selectedNoteIDs
+        guard !targets.isEmpty, gridBeats > 0 else { return }
+        store.pushUndoSnapshot()
+        let clampedStrength = max(0, min(1, strength))
+        for index in store.project.score.notes.indices where targets.contains(store.project.score.notes[index].id) {
+            var note = store.project.score.notes[index]
+            let originalStart = note.startBeat
+            let snappedStart = (originalStart / gridBeats).rounded() * gridBeats
+            let newStart = max(0, originalStart + (snappedStart - originalStart) * clampedStrength)
+            if snapEnd {
+                let originalEnd = originalStart + note.durationBeats
+                let snappedEnd = (originalEnd / gridBeats).rounded() * gridBeats
+                let newEnd = originalEnd + (snappedEnd - originalEnd) * clampedStrength
+                note.durationBeats = max(gridBeats / 4, newEnd - newStart)
+            }
+            note.startBeat = newStart
+            store.project.score.notes[index] = note
+        }
+        hasManualEdits = true
+    }
+
     // MARK: - Tempo map
+
+    /// Sets the tempo for the beat range [start, end) to `bpm`, restoring the tempo that was
+    /// previously in effect at `end` so beats after the range are unaffected.
+    func setTempo(fromBeat start: Double, toBeat end: Double, bpm: Double) {
+        guard end > start else { return }
+        store.pushUndoSnapshot()
+        let clampedBPM = max(20, min(300, bpm))
+        let restoredBPM = tempo(atBeat: end)
+        // Remove events strictly inside the range, plus any sitting exactly on either boundary,
+        // so the boundary events we're about to append below don't end up duplicated.
+        store.project.score.tempoEvents.removeAll { $0.beat >= start - 0.001 && $0.beat <= end + 0.001 }
+        store.project.score.tempoEvents.append(TempoEvent(beat: max(0, start), bpm: clampedBPM))
+        store.project.score.tempoEvents.append(TempoEvent(beat: end, bpm: restoredBPM))
+        store.project.score.tempoEvents.sort { $0.beat < $1.beat }
+        if store.project.score.tempoEvents.first?.beat != 0 {
+            store.project.score.tempoEvents.insert(TempoEvent(beat: 0, bpm: store.project.score.tempoEvents.first?.bpm ?? 120), at: 0)
+        }
+        hasManualEdits = true
+    }
+
+    /// The tempo in effect at `beat`, per the current tempo map.
+    func tempo(atBeat beat: Double) -> Double {
+        let events = store.project.score.tempoEvents.sorted { $0.beat < $1.beat }
+        var current = events.first?.bpm ?? 120
+        for event in events where event.beat <= beat { current = event.bpm }
+        return current
+    }
 
     func addTempoEvent(beat: Double, bpm: Double) {
         store.pushUndoSnapshot()

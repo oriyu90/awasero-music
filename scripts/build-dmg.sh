@@ -3,7 +3,7 @@ set -euo pipefail
 
 project_dir="${0:A:h:h}"
 build_dir="$project_dir/.build"
-version="1.0.0"
+version="1.1.0"
 volume_name="合わせろMusic"
 app_dir="$build_dir/合わせろMusic.app"
 dmg_path="$build_dir/合わせろMusic-$version.dmg"

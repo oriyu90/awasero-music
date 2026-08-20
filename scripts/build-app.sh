@@ -16,6 +16,6 @@ cp "$build_dir/release/AwaseroMusic" "$app_dir/Contents/MacOS/AwaseroMusic"
 cp "$project_dir/Resources/Info.plist" "$app_dir/Contents/Info.plist"
 cp "$project_dir/LICENSE" "$app_dir/Contents/Resources/LICENSE.txt"
 sign_identity="${AWASERO_SIGN_IDENTITY:--}"
-codesign --force --deep --options runtime --sign "$sign_identity" "$app_dir"
+codesign --force --deep --options runtime --entitlements "$project_dir/Resources/AwaseroMusic.entitlements" --sign "$sign_identity" "$app_dir"
 
 echo "$app_dir"

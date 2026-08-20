@@ -2,7 +2,8 @@
 set -euo pipefail
 
 project_dir="${0:A:h:h}"
-dmg_path="${1:-$project_dir/.build/合わせろMusic-1.0.0.dmg}"
+version="1.1.0"
+dmg_path="${1:-$project_dir/.build/合わせろMusic-$version.dmg}"
 checksum_path="$dmg_path.sha256"
 mount_dir="$(mktemp -d /tmp/awasero-dmg-XXXXXX)"
 is_mounted=false
@@ -26,6 +27,7 @@ test -f "$mount_dir/LICENSE.txt"
 test -f "$mount_dir/README.md"
 grep -q "Copyright (c) 2026 Yuki_Orita" "$mount_dir/LICENSE.txt"
 codesign --verify --deep --strict "$mount_dir/合わせろMusic.app"
+codesign -d --entitlements :- "$mount_dir/合わせろMusic.app" | grep -q "com.apple.security.device.audio-input"
 plutil -lint "$mount_dir/合わせろMusic.app/Contents/Info.plist"
 test -f "$mount_dir/合わせろMusic.app/Contents/Resources/LICENSE.txt"
 
