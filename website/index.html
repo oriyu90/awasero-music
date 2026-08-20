@@ -75,6 +75,7 @@
   .hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 0 0 12px; }
   .hero p.tagline { font-size: 1.15rem; color: var(--text-secondary); max-width: 620px; margin: 0 auto; }
   .cta-row { display: flex; gap: 12px; justify-content: center; margin-top: 32px; flex-wrap: wrap; }
+  p.req { margin-top: 16px; font-size: 0.85rem; color: var(--text-secondary); }
   .button {
     display: inline-flex;
     align-items: center;
@@ -140,13 +141,24 @@
     <div data-i18n="pt"><p class="tagline">Grave uma melodia cantarolada e o Awasero Music estima a tonalidade e o desvio geral de afinação — preservando a relação entre as notas — convertendo tudo em partitura editável e MIDI, no macOS.</p></div>
 
     <div class="cta-row">
+      <a class="button primary" href="https://github.com/oriyu90/awasero-music/releases/latest" target="_blank" rel="noopener">
+        <span data-i18n="ja" class="active">macOS版をダウンロード</span>
+        <span data-i18n="en">Download for macOS</span>
+        <span data-i18n="zh">下载 macOS 版</span>
+        <span data-i18n="pt">Baixar para macOS</span>
+      </a>
+      <a class="button secondary" href="https://github.com/oriyu90/awasero-music" target="_blank" rel="noopener">GitHub</a>
       <a class="button secondary" href="https://discord.gg/x7KXhNTD8M" target="_blank" rel="noopener">
-        <span data-i18n="ja" class="active">Discordで最新情報・配布を確認</span>
-        <span data-i18n="en">Join Discord for updates &amp; downloads</span>
-        <span data-i18n="zh">加入 Discord 获取最新消息与下载</span>
-        <span data-i18n="pt">Entre no Discord para novidades e downloads</span>
+        <span data-i18n="ja" class="active">Discordコミュニティ</span>
+        <span data-i18n="en">Discord community</span>
+        <span data-i18n="zh">Discord 社区</span>
+        <span data-i18n="pt">Comunidade no Discord</span>
       </a>
     </div>
+    <div data-i18n="ja" class="active"><p class="req">macOS 14以降・Apple Silicon（arm64）対応。DMGはad-hoc署名のため、初回起動時は右クリック（またはControl+クリック）→「開く」が必要です。</p></div>
+    <div data-i18n="en"><p class="req">Requires macOS 14 or later on Apple Silicon (arm64). The DMG is ad-hoc signed, so right-click (or Control-click) the app and choose "Open" the first time.</p></div>
+    <div data-i18n="zh"><p class="req">需要 macOS 14 及以上版本，Apple Silicon（arm64）。DMG 为 ad-hoc 签名，首次启动请右键（或按住 Control 点击）应用后选择「打开」。</p></div>
+    <div data-i18n="pt"><p class="req">Requer macOS 14 ou posterior em Apple Silicon (arm64). O DMG tem assinatura ad-hoc; na primeira execução, clique com o botão direito (ou Control-clique) no app e escolha "Abrir".</p></div>
   </section>
 
   <section>
@@ -216,15 +228,16 @@
   </section>
 
   <section>
-    <div data-i18n="ja" class="active"><h2>開発について</h2><p>開発者: 折田悠希（おりたゆうき）。MITライセンスで公開予定。開発の様子は今後GitHubで公開します。バグ報告・ご要望はDiscordコミュニティまで。</p></div>
-    <div data-i18n="en"><h2>About the project</h2><p>Developed by Yuki Orita (折田悠希 / おりたゆうき). Released under the MIT License. Development will be shared on GitHub. Report bugs or share feedback in the Discord community.</p></div>
-    <div data-i18n="zh"><h2>关于本项目</h2><p>开发者：折田悠希（おりたゆうき）。以 MIT 许可证发布。开发进展将在 GitHub 上公开。欢迎在 Discord 社区反馈问题或建议。</p></div>
-    <div data-i18n="pt"><h2>Sobre o projeto</h2><p>Desenvolvido por Yuki Orita (折田悠希 / おりたゆうき). Distribuído sob a licença MIT. O desenvolvimento será compartilhado no GitHub. Relate bugs ou sugestões na comunidade do Discord.</p></div>
+    <div data-i18n="ja" class="active"><h2>開発について</h2><p>開発者: 折田悠希（おりたゆうき）。MITライセンスでGitHub上に公開中です。バグ報告・ご要望はGitHub IssuesまたはDiscordコミュニティまで。</p></div>
+    <div data-i18n="en"><h2>About the project</h2><p>Developed by Yuki Orita (折田悠希 / おりたゆうき). Released under the MIT License and developed in the open on GitHub. Report bugs or share feedback via GitHub Issues or the Discord community.</p></div>
+    <div data-i18n="zh"><h2>关于本项目</h2><p>开发者：折田悠希（おりたゆうき）。以 MIT 许可证在 GitHub 上公开开发。欢迎通过 GitHub Issues 或 Discord 社区反馈问题或建议。</p></div>
+    <div data-i18n="pt"><h2>Sobre o projeto</h2><p>Desenvolvido por Yuki Orita (折田悠希 / おりたゆうき). Distribuído sob a licença MIT e desenvolvido abertamente no GitHub. Relate bugs ou sugestões pelo GitHub Issues ou na comunidade do Discord.</p></div>
   </section>
 </main>
 
 <footer>
   <div class="links">
+    <a href="https://github.com/oriyu90/awasero-music" target="_blank" rel="noopener">GitHub</a>
     <a href="https://discord.gg/x7KXhNTD8M" target="_blank" rel="noopener">Discord</a>
     <a href="https://x.com/InovateofRIZI" target="_blank" rel="noopener">X (Twitter)</a>
     <a href="https://oriyu90.github.io/official/" target="_blank" rel="noopener">Yuki_Orita Official</a>
